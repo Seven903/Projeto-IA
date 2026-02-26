@@ -17,7 +17,7 @@
 // ============================================================
 
 import '../models/index';
-import { sequelize, testConnection } from './connection';
+import { sequelize, testConnection } from './conection';
 import {
   SystemUser,
   Student,

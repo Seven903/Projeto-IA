@@ -15,7 +15,7 @@
 //   StockAlertDto            → alerta de estoque ou vencimento
 // ============================================================
 
-import { AllergySeverity } from '../models/StudentAllergy';
+import { AllergySeverity } from '../models/Studentallergy';
 import { AttendanceStatus } from '../models/Attendance';
 
 // ============================================================

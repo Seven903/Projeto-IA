@@ -16,20 +16,27 @@
 // ============================================================
 
 import { Op } from 'sequelize';
-import { Student } from '../models/Student';
-import { StudentHealthRecord } from '../models/StudentHealthRecord';
-import { StudentAllergy } from '../models/StudentAllergy';
-import { AuditLog } from '../models/AuditLog';
-import { sequelize } from '../database/connection';
-import { normalizeIngredient, normalizeName } from '../utils/normalize';
-import { AuthenticatedUser } from '../types/express.d';
-import { StudentSearchQuery } from '../types/api.types';
-import { ChronicCondition } from '../models/StudentHealthRecord';
+import { Student } from '../../../models/Student';
+import { StudentHealthRecord } from '../../../models/StudentHealthRecord';
+import { StudentAllergy } from '../../../models/Studentallergy';
+import { AuditLog } from '../../../models/AuditLog';
+import { sequelize } from '../../../database/conection';
+import { normalizeIngredient, normalizeName } from '../../../utils/normalize';
+import { AuthenticatedUser } from '../../../types/auth.types';
+import { StudentSearchQuery } from '../../../types/api.types';
+import { ChronicCondition } from '../../../models/StudentHealthRecord';
 import { v4 as uuidv4 } from 'uuid';
 
 export class StudentService {
 
   // ── Busca de estudantes ──────────────────────────────────
+
+  /**
+   * Busca estudante por UUID.
+   */
+  async findById(id: string): Promise<Student | null> {
+    return Student.findByPk(id);
+  }
 
   /**
    * Busca estudante por matrícula — caminho principal da tela de atendimento.

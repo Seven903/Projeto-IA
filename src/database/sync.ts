@@ -22,7 +22,7 @@
 // ============================================================
 
 import '../models/index'; // Registra todos os models e associations
-import { sequelize, testConnection } from './connection';
+import { sequelize, testConnection } from './conection';
 import {
   SystemUser,
   Student,

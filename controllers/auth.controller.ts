@@ -25,17 +25,17 @@
 
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { SystemUser } from '../models/SystemUser';
-import { AuditLog } from '../models/AuditLog';
+import { SystemUser } from '../src/models/SystemUser';
+import { AuditLog } from '../src/models/AuditLog';
 import {
   sendSuccess,
   sendUnauthorized,
   sendValidationError,
   sendInternalError,
-} from '../utils/responseBuilder';
-import { LoginDto } from '../types/api.types';
-import { JwtPayload } from '../types/express.d';
-import { normalizeEmail } from '../utils/normalize';
+} from '../src/utils/responseBuilder';
+import { LoginDto } from '../src/types/api.types';
+import { JwtPayload } from '../src/types/express.d';
+import { normalizeEmail } from '../src/utils/normalize';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'TROQUE_ESTA_CHAVE_EM_PRODUCAO';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? '8h';

@@ -25,8 +25,8 @@
 // ============================================================
 
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '../models/SystemUser';
-import { sendForbidden, sendUnauthorized } from '../utils/responseBuilder';
+import { UserRole } from '../src/models/SystemUser';
+import { sendForbidden, sendUnauthorized } from '../src/utils/responseBuilder';
 
 /**
  * Gera um middleware que verifica se o usuário possui uma das roles permitidas.

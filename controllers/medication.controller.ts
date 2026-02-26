@@ -13,7 +13,7 @@
 // ============================================================
 
 import { Request, Response } from 'express';
-import { StockService } from '../services/StockService';
+import { StockService } from '../src/services/StockService';
 import { ValidationError, UniqueConstraintError } from 'sequelize';
 import {
   sendSuccess,
@@ -23,8 +23,8 @@ import {
   sendForbidden,
   sendInternalError,
   buildPagination,
-} from '../utils/responseBuilder';
-import { MedicationSearchQuery, IdParams } from '../types/api.types';
+} from '../src/utils/responseBuilder';
+import { MedicationSearchQuery, IdParams } from '../src/types/api.types';
 
 const stockService = new StockService();
 
@@ -82,7 +82,7 @@ export class MedicationController {
 
   async getById(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const medication = await stockService.getMedicationById(id);
 
       if (!medication) {
@@ -120,7 +120,7 @@ export class MedicationController {
   async receiveBatch(req: Request, res: Response): Promise<Response> {
     try {
       const operator = req.user!;
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
 
       if (!operator.permissions.canManageStock) {
         return sendForbidden(
@@ -183,7 +183,7 @@ export class MedicationController {
 
   async listBatches(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const medication = await stockService.getMedicationById(id);
 
       if (!medication) {

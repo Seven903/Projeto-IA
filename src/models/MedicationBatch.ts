@@ -30,7 +30,7 @@ import {
   NonAttribute,
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 export class MedicationBatch extends Model<
   InferAttributes<MedicationBatch>,

@@ -18,7 +18,7 @@
 // ============================================================
 
 import { Transaction } from 'sequelize';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 import { Attendance } from '../models/Attendance';
 import { MedicationBatch } from '../models/MedicationBatch';
 import { Medication } from '../models/Medication';

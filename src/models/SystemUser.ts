@@ -27,7 +27,7 @@ import {
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 // ── Tipos exportados ─────────────────────────────────────────
 export type UserRole = 'nurse' | 'pharmacist' | 'admin' | 'superadmin';

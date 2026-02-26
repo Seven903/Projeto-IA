@@ -20,12 +20,13 @@ import {
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
+  NonAttribute,
   HasOneGetAssociationMixin,
   HasManyGetAssociationsMixin,
   Association,
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 export type Gender = 'male' | 'female' | 'non_binary' | 'not_informed';
 
@@ -75,7 +76,7 @@ export class Student extends Model<
   // ── Getters computados ───────────────────────────────────────
 
   /** Calcula a idade atual do estudante em anos completos */
-  get age(): number {
+  get age(): NonAttribute<number> {
     const today = new Date();
     const birth = new Date(this.birthDate);
     let age = today.getFullYear() - birth.getFullYear();
@@ -87,7 +88,7 @@ export class Student extends Model<
   }
 
   /** Retorna o nome completo formatado para exibição */
-  get displayName(): string {
+  get displayName(): NonAttribute<string> {
     return this.fullName
       .toLowerCase()
       .replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());

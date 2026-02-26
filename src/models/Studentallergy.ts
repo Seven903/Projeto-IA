@@ -29,7 +29,7 @@ import {
   NonAttribute,
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 // ── Tipos exportados ─────────────────────────────────────────
 export type AllergySeverity = 'mild' | 'moderate' | 'severe' | 'anaphylactic';
@@ -111,7 +111,7 @@ export class StudentAllergy extends Model<
       severe: 'Severa',
       anaphylactic: 'Anafilática 🚨',
     };
-    return labels[this.severity];
+    return labels[this.severity as AllergySeverity];
   }
 
   // ── Métodos estáticos ────────────────────────────────────────
@@ -152,10 +152,9 @@ StudentAllergy.init(
       allowNull: false,
       validate: {
         notEmpty: { msg: 'Princípio ativo é obrigatório.' },
-        isLowercase(value: string) {
-          if (value !== value.toLowerCase()) {
-            throw new Error('Princípio ativo deve estar em letras minúsculas (use normalizeIngredient()).');
-          }
+        is: {
+          args: /^[a-z0-9\s]+$/,
+          msg: 'Princípio ativo deve estar em letras minúsculas sem acentos. Use normalizeIngredient().',
         },
       },
     },

@@ -24,7 +24,7 @@ import {
   sendNotFound,
   sendInternalError,
   sendError,
-} from '../utils/responseBuilder';
+} from '../src/utils/responseBuilder';
 
 // ── VALIDATE MIDDLEWARE (Zod) ────────────────────────────────
 

@@ -19,9 +19,9 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 
-import { injectRequestId } from './middlewares/auth.middleware';
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware';
-import routes from './routes/index';
+import { injectRequestId } from '../middlewares/auth.middleware';
+import { errorHandler, notFoundHandler } from '../middlewares/errorHandler.middleware';
+import routes from '../routes/index';
 
 export function createApp(): Application {
   const app = express();

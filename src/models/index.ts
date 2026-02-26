@@ -22,8 +22,8 @@ export type { Gender } from './Student';
 export { StudentHealthRecord } from './StudentHealthRecord';
 export type { ChronicCondition, BloodType } from './StudentHealthRecord';
 
-export { StudentAllergy } from './StudentAllergy';
-export type { AllergySeverity } from './StudentAllergy';
+export { StudentAllergy } from './Studentallergy';
+export type { AllergySeverity } from './Studentallergy';
 
 export { Medication } from './Medication';
 
@@ -41,7 +41,7 @@ export type { AuditAction, AuditPayload } from './AuditLog';
 import { SystemUser } from './SystemUser';
 import { Student } from './Student';
 import { StudentHealthRecord } from './StudentHealthRecord';
-import { StudentAllergy } from './StudentAllergy';
+import { StudentAllergy } from './Studentallergy';
 import { Medication } from './Medication';
 import { MedicationBatch } from './MedicationBatch';
 import { Attendance } from './Attendance';

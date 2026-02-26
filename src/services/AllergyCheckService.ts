@@ -23,7 +23,7 @@
 // ============================================================
 
 import { Student } from '../models/Student';
-import { StudentAllergy } from '../models/StudentAllergy';
+import { StudentAllergy } from '../models/Studentallergy';
 import { Medication } from '../models/Medication';
 import { MedicationBatch } from '../models/MedicationBatch';
 import {

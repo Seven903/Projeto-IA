@@ -24,11 +24,12 @@ import {
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
+  NonAttribute,
   HasManyGetAssociationsMixin,
   Association,
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 export class Medication extends Model<
   InferAttributes<Medication>,
@@ -83,7 +84,7 @@ export class Medication extends Model<
    * Retorna a descrição completa do medicamento para exibição.
    * Ex: "Novalgina 500mg — Comprimido (dipirona sodica)"
    */
-  get fullDescription(): string {
+  get fullDescription(): NonAttribute<string> {
     return `${this.commercialName} — ${this.pharmaceuticalForm} (${this.activeIngredient})`;
   }
 }
@@ -118,12 +119,9 @@ Medication.init(
       allowNull: false,
       validate: {
         notEmpty: { msg: 'Princípio ativo é obrigatório.' },
-        isLowercase(value: string) {
-          if (value !== value.toLowerCase()) {
-            throw new Error(
-              'Princípio ativo deve estar em letras minúsculas. Use StudentAllergy.normalizeIngredient().'
-            );
-          }
+        is: {
+          args: /^[a-z0-9\s]+$/,
+          msg: 'Princípio ativo deve estar em letras minúsculas sem acentos. Use normalizeIngredient().',
         },
       },
     },

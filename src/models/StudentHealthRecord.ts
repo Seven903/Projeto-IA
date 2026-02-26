@@ -26,11 +26,12 @@ import {
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
+  NonAttribute,
   BelongsToGetAssociationMixin,
   Association,
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 // ── Interfaces de tipos ──────────────────────────────────────
 
@@ -80,7 +81,7 @@ export class StudentHealthRecord extends Model<
   // ── Métodos utilitários ──────────────────────────────────────
 
   /** Retorna true se o estudante possui pelo menos uma condição crônica */
-  get hasChronicConditions(): boolean {
+  get hasChronicConditions(): NonAttribute<boolean> {
     return Array.isArray(this.chronicConditions) && this.chronicConditions.length > 0;
   }
 

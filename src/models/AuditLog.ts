@@ -35,7 +35,7 @@ import {
   BelongsToGetAssociationMixin,
   Association,
 } from 'sequelize';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 // ── Tipos exportados ─────────────────────────────────────────
 

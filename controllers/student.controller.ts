@@ -15,7 +15,7 @@
 // ============================================================
 
 import { Request, Response } from 'express';
-import { StudentService } from '../services/StudentService';
+import { StudentService } from '../src/services/validade/estoque/StudentService';
 import { ValidationError, UniqueConstraintError } from 'sequelize';
 import {
   sendSuccess,
@@ -26,8 +26,8 @@ import {
   sendInternalError,
   buildPagination,
   parsePaginationQuery,
-} from '../utils/responseBuilder';
-import { StudentSearchQuery, IdParams, NestedIdParams } from '../types/api.types';
+} from '../src/utils/responseBuilder';
+import { StudentSearchQuery, IdParams, NestedIdParams } from '../src/types/api.types';
 
 const studentService = new StudentService();
 
@@ -136,7 +136,7 @@ export class StudentController {
 
   async getById(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const { student } = await studentService.getHealthProfile(id, req.user!);
 
       if (!student) {
@@ -158,7 +158,7 @@ export class StudentController {
 
   async update(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const operator = req.user!;
 
       const student = await studentService.updateStudent(id, req.body, operator);
@@ -194,7 +194,7 @@ export class StudentController {
         );
       }
 
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const profile = await studentService.getHealthProfile(id, operator);
 
       return sendSuccess(res, {
@@ -232,7 +232,7 @@ export class StudentController {
 
   async updateChronicConditions(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const operator = req.user!;
       const { chronicConditions } = req.body;
 
@@ -264,7 +264,7 @@ export class StudentController {
 
   async addAllergy(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params as IdParams;
+      const { id } = req.params as unknown as IdParams;
       const operator = req.user!;
 
       const allergy = await studentService.addAllergy(id, req.body, operator);

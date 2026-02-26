@@ -15,12 +15,20 @@
 // ============================================================
 
 import { Request, Response } from 'express';
-import { ReportService } from '../services/ReportService';
+import { Op } from 'sequelize';
+import { ReportService } from '../src/services/validade/estoque/ReportService';
+import { AuditLog } from '../src/models/AuditLog';
+import { SystemUser } from '../src/models/SystemUser';
 import {
   sendSuccess,
+  sendForbidden,
   sendValidationError,
   sendInternalError,
-} from '../utils/responseBuilder';
+  buildPagination,
+  parsePaginationQuery,
+} from '../src/utils/responseBuilder';
+import { AuditLogSearchQuery, DateRangeQuery } from '../src/types/api.types';
+import { parseDateRangeFromQuery } from '../src/utils/dateHelpers';
 
 const reportService = new ReportService();
 
@@ -214,6 +222,48 @@ export class ReportController {
         return sendValidationError(res, error.message);
       }
       console.error('[ReportController.getAttendancesByStatus]', error);
+      return sendInternalError(res, error);
+    }
+  }
+
+  // ── GET /reports/audit ───────────────────────────────────
+
+  async getAuditLog(req: Request, res: Response): Promise<Response> {
+    try {
+      if (req.user?.role !== 'superadmin') {
+        return sendForbidden(res, 'Apenas superadmins podem visualizar logs de auditoria.');
+      }
+
+      const { page, limit, offset } = parsePaginationQuery(req.query);
+      const query = req.query as AuditLogSearchQuery;
+      const { start, end } = parseDateRangeFromQuery(query.startDate, query.endDate);
+
+      const where: Record<string, unknown> = {
+        performedAt: { [Op.between]: [start, end] },
+      };
+
+      if (query.performedBy) where.performedBy = query.performedBy;
+      if (query.action)      where.action = query.action;
+      if (query.targetTable) where.targetTable = query.targetTable;
+
+      const { rows, count } = await AuditLog.findAndCountAll({
+        where,
+        limit,
+        offset,
+        order: [['performedAt', 'DESC']],
+        include: [
+          {
+            model: SystemUser,
+            as: 'performedByUser',
+            attributes: ['id', 'fullName', 'role'],
+          },
+        ],
+      });
+
+      return sendSuccess(res, rows, 200, buildPagination(count, page, limit));
+
+    } catch (error) {
+      console.error('[ReportController.getAuditLog]', error);
       return sendInternalError(res, error);
     }
   }

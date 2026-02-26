@@ -12,9 +12,9 @@
 // ============================================================
 
 import 'dotenv/config';
-import http from 'http';
+import * as http from 'http';
 import { createApp } from './app';
-import { testConnection } from './database/connection';
+import { testConnection } from './database/conection';
 
 // Importa o index dos models para registrar todas as associations
 import './models/index';
@@ -50,7 +50,7 @@ async function bootstrap(): Promise<void> {
     console.log(`\n⚠️  Sinal ${signal} recebido. Encerrando servidor...`);
     server.close(async () => {
       console.log('✅ Servidor HTTP encerrado.');
-      const { sequelize } = await import('./database/connection');
+      const { sequelize } = await import('./database/conection');
       await sequelize.close();
       console.log('✅ Conexão com o banco encerrada.');
       process.exit(0);

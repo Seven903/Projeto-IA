@@ -11,13 +11,13 @@
 // ============================================================
 
 import { Request, Response } from 'express';
-import { Attendance } from '../models/Attendance';
-import { Student } from '../models/Student';
-import { SystemUser } from '../models/SystemUser';
-import { Dispensation } from '../models/Dispensation';
-import { MedicationBatch } from '../models/MedicationBatch';
-import { Medication } from '../models/Medication';
-import { StudentAllergy } from '../models/StudentAllergy';
+import { Attendance } from '../src/models/Attendance';
+import { Student } from '../src/models/Student';
+import { SystemUser } from '../src/models/SystemUser';
+import { Dispensation } from '../src/models/Dispensation';
+import { MedicationBatch } from '../src/models/MedicationBatch';
+import { Medication } from '../src/models/Medication';
+import { StudentAllergy } from '../src/models/Studentallergy';
 import { Op } from 'sequelize';
 import {
   sendSuccess,
@@ -28,9 +28,10 @@ import {
   sendInternalError,
   buildPagination,
   parsePaginationQuery,
-} from '../utils/responseBuilder';
-import { OpenAttendanceDto, CloseAttendanceDto, AttendanceSearchQuery } from '../types/dispensation.types';
-import { parseDateRangeFromQuery } from '../utils/dateHelpers';
+} from '../src/utils/responseBuilder';
+import { OpenAttendanceDto, CloseAttendanceDto } from '../src/types/dispensation.types';
+import { AttendanceSearchQuery, IdParams } from '../src/types/api.types';
+import { parseDateRangeFromQuery } from '../src/utils/dateHelpers';
 import { v4 as uuidv4 } from 'uuid';
 
 export class AttendanceController {

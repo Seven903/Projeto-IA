@@ -28,7 +28,7 @@ import {
   NonAttribute,
 } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize } from '../database/connection';
+import { sequelize } from '../database/conection';
 
 export type AttendanceStatus =
   | 'open'
@@ -107,7 +107,7 @@ export class Attendance extends Model<
       closed: 'Encerrado',
       blocked_allergy: '⚠️ Bloqueado — Alergia',
     };
-    return labels[this.status ?? 'open'];
+    return labels[(this.status as AttendanceStatus) ?? 'open'];
   }
 }
 

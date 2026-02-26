@@ -20,7 +20,7 @@
 // ============================================================
 
 import { Request, Response, NextFunction } from 'express';
-import { AuditLog } from '../models/AuditLog';
+import { AuditLog } from '../src/models/AuditLog';
 
 /**
  * Registra DISPENSE_ATTEMPT no AuditLog antes do controller executar.

@@ -23,8 +23,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { JwtPayload } from '../types/express.d';
-import { sendUnauthorized } from '../utils/responseBuilder';
+import { JwtPayload } from '../src/types/express.d';
+import { sendUnauthorized } from '../src/utils/responseBuilder';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'TROQUE_EM_PRODUCAO';
 

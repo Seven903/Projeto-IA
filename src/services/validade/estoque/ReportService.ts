@@ -14,24 +14,29 @@
 //   4. Cobertura de Alergias → percentual da comunidade com alergias mapeadas
 // ============================================================
 
-import { Op, fn, col, literal, QueryTypes } from 'sequelize';
-import { sequelize } from '../database/connection';
-import { Attendance } from '../models/Attendance';
-import { Dispensation } from '../models/Dispensation';
-import { MedicationBatch } from '../models/MedicationBatch';
-import { Medication } from '../models/Medication';
-import { Student } from '../models/Student';
-import { StudentAllergy } from '../models/StudentAllergy';
-import { AuditLog } from '../models/AuditLog';
+import { Op, fn, col, literal, QueryTypes } from "sequelize";
+import { sequelize } from "../../../database/conection";
+import { Attendance } from "../../../models/Attendance";
+import { Dispensation } from "../../../models/Dispensation";
+import { MedicationBatch } from "../../../models/MedicationBatch";
+import { Medication } from "../../../models/Medication";
+import { Student } from "../../../models/Student";
+import { StudentAllergy } from "../../../models/Studentallergy";
+import { AuditLog } from "../../../models/AuditLog";
 import {
   HeatmapPointDto,
   AbcCurveItemDto,
   AllergyCoverageDto,
   DashboardSummaryDto,
-} from '../types/dispensation.types';
-import { StockService } from './StockService';
-import { getDateRange, parseDateRangeFromQuery, generateWeekdayLabels, generateHourLabels } from '../utils/dateHelpers';
-import { AuthenticatedUser } from '../types/express.d';
+} from "../../../types/dispensation.types";
+import { StockService } from "../../StockService";
+import {
+  getDateRange,
+  parseDateRangeFromQuery,
+  generateWeekdayLabels,
+  generateHourLabels,
+} from "../../../utils/dateHelpers";
+import { AuthenticatedUser } from "../../../types/express.d";
 
 export class ReportService {
   private stockService: StockService;
@@ -46,9 +51,11 @@ export class ReportService {
    * Retorna os dados resumidos para a tela inicial (dashboard) do enfermeiro.
    * Inclui atendimentos do dia, do mês e alertas de estoque ativos.
    */
-  async getDashboardSummary(operator: AuthenticatedUser): Promise<DashboardSummaryDto> {
-    const { start: startToday, end: endToday } = getDateRange('today');
-    const { start: startMonth, end: endMonth } = getDateRange('thisMonth');
+  async getDashboardSummary(
+    operator: AuthenticatedUser,
+  ): Promise<DashboardSummaryDto> {
+    const { start: startToday, end: endToday } = getDateRange("today");
+    const { start: startMonth, end: endMonth } = getDateRange("thisMonth");
 
     const [
       attendancesToday,
@@ -72,7 +79,7 @@ export class ReportService {
 
       // Atendimentos em aberto agora
       Attendance.count({
-        where: { status: 'open' },
+        where: { status: "open" },
       }),
 
       // Alertas de estoque
@@ -82,11 +89,11 @@ export class ReportService {
     // Registra geração de relatório no AuditLog
     await AuditLog.create({
       performedBy: operator.id,
-      action: 'REPORT_GENERATED',
+      action: "REPORT_GENERATED",
       targetTable: null,
       targetId: null,
       payload: {
-        reportType: 'DASHBOARD_SUMMARY',
+        reportType: "DASHBOARD_SUMMARY",
         generatedAt: new Date().toISOString(),
       },
     });
@@ -119,7 +126,7 @@ export class ReportService {
    */
   async getAttendanceHeatmap(
     startDate?: string,
-    endDate?: string
+    endDate?: string,
   ): Promise<HeatmapPointDto[]> {
     const { start, end } = parseDateRangeFromQuery(startDate, endDate);
 
@@ -140,7 +147,7 @@ export class ReportService {
       {
         replacements: { start: start.toISOString(), end: end.toISOString() },
         type: QueryTypes.SELECT,
-      }
+      },
     );
 
     const weekdayLabels = generateWeekdayLabels();
@@ -152,7 +159,7 @@ export class ReportService {
     for (let weekday = 0; weekday < 7; weekday++) {
       for (let hour = 0; hour < 24; hour++) {
         const found = rows.find(
-          (r) => r.weekday === weekday && r.hour === hour
+          (r) => r.weekday === weekday && r.hour === hour,
         );
         heatmap.push({
           weekday,
@@ -186,12 +193,11 @@ export class ReportService {
    */
   async getMedicationAbcCurve(
     startDate?: string,
-    endDate?: string
+    endDate?: string,
   ): Promise<AbcCurveItemDto[]> {
-    const { start, end } = parseDateRangeFromQuery(
-      startDate,
-      endDate ?? undefined
-    ) ?? getDateRange('thisYear');
+    const { start, end } =
+      parseDateRangeFromQuery(startDate, endDate ?? undefined) ??
+      getDateRange("thisYear");
 
     // Query raw para aproveitar window functions do SQLite (3.25+)
     const rows = await sequelize.query<{
@@ -218,7 +224,7 @@ export class ReportService {
       {
         replacements: { start: start.toISOString(), end: end.toISOString() },
         type: QueryTypes.SELECT,
-      }
+      },
     );
 
     if (rows.length === 0) return [];
@@ -233,10 +239,10 @@ export class ReportService {
       const pct = (row.total_dispensed / grandTotal) * 100;
       const cumulativePct = (cumulative / grandTotal) * 100;
 
-      let abcClass: 'A' | 'B' | 'C';
-      if (cumulativePct <= 80) abcClass = 'A';
-      else if (cumulativePct <= 95) abcClass = 'B';
-      else abcClass = 'C';
+      let abcClass: "A" | "B" | "C";
+      if (cumulativePct <= 80) abcClass = "A";
+      else if (cumulativePct <= 95) abcClass = "B";
+      else abcClass = "C";
 
       return {
         rank: index + 1,
@@ -277,18 +283,19 @@ export class ReportService {
       // Conta alunos distintos com pelo menos uma alergia
       StudentAllergy.count({
         distinct: true,
-        col: 'studentId',
+        col: "studentId",
       }),
 
-      StudentAllergy.count({ where: { severity: 'anaphylactic' } }),
-      StudentAllergy.count({ where: { severity: 'severe' } }),
-      StudentAllergy.count({ where: { severity: 'moderate' } }),
-      StudentAllergy.count({ where: { severity: 'mild' } }),
+      StudentAllergy.count({ where: { severity: "anaphylactic" } }),
+      StudentAllergy.count({ where: { severity: "severe" } }),
+      StudentAllergy.count({ where: { severity: "moderate" } }),
+      StudentAllergy.count({ where: { severity: "mild" } }),
     ]);
 
     const percentWithAllergies =
       totalActiveStudents > 0
-        ? Math.round((studentsWithAllergies / totalActiveStudents) * 10000) / 100
+        ? Math.round((studentsWithAllergies / totalActiveStudents) * 10000) /
+          100
         : 0;
 
     return {
@@ -312,7 +319,7 @@ export class ReportService {
    */
   async getAttendancesByDay(
     startDate?: string,
-    endDate?: string
+    endDate?: string,
   ): Promise<Array<{ date: string; count: number }>> {
     const { start, end } = parseDateRangeFromQuery(startDate, endDate);
 
@@ -327,7 +334,7 @@ export class ReportService {
       {
         replacements: { start: start.toISOString(), end: end.toISOString() },
         type: QueryTypes.SELECT,
-      }
+      },
     );
 
     return rows;
@@ -339,7 +346,7 @@ export class ReportService {
    */
   async getAttendancesByStatus(
     startDate?: string,
-    endDate?: string
+    endDate?: string,
   ): Promise<Array<{ status: string; count: number }>> {
     const { start, end } = parseDateRangeFromQuery(startDate, endDate);
 
@@ -354,7 +361,7 @@ export class ReportService {
       {
         replacements: { start: start.toISOString(), end: end.toISOString() },
         type: QueryTypes.SELECT,
-      }
+      },
     );
 
     return rows;

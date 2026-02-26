@@ -16,7 +16,7 @@
 // ============================================================
 
 import { Sequelize, Options } from 'sequelize';
-import path from 'path';
+import * as path from 'path';
 
 // Caminho do arquivo .db — configurável via variável de ambiente
 const DB_PATH =

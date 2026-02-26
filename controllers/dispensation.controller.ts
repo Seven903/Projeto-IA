@@ -17,12 +17,12 @@
 // ============================================================
 
 import { Request, Response } from 'express';
-import { DispensationService } from '../services/DispensationService';
-import { AllergyCheckService } from '../services/AllergyCheckService';
-import { Dispensation } from '../models/Dispensation';
-import { MedicationBatch } from '../models/MedicationBatch';
-import { Medication } from '../models/Medication';
-import { SystemUser } from '../models/SystemUser';
+import { DispensationService } from '../src/services/DispensationService';
+import { AllergyCheckService } from '../src/services/AllergyCheckService';
+import { Dispensation } from '../src/models/Dispensation';
+import { MedicationBatch } from '../src/models/MedicationBatch';
+import { Medication } from '../src/models/Medication';
+import { SystemUser } from '../src/models/SystemUser';
 import {
   sendSuccess,
   sendCreated,
@@ -32,8 +32,8 @@ import {
   sendAllergyConflict,
   sendStockInsufficient,
   sendInternalError,
-} from '../utils/responseBuilder';
-import { DispensationRequestDto } from '../types/dispensation.types';
+} from '../src/utils/responseBuilder';
+import { DispensationRequestDto } from '../src/types/dispensation.types';
 
 const dispensationService = new DispensationService();
 const allergyCheckService = new AllergyCheckService();

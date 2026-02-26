@@ -2,9 +2,6 @@
 // ============================================================
 // Rotas de estudantes e dados de saúde.
 //
-// Todas as rotas exigem JWT válido (requireAuth).
-// Rotas de saúde exigem role com canAccessHealthData.
-//
 //   GET    /api/v1/students                           → todos os roles
 //   GET    /api/v1/students/search                    → todos os roles
 //   POST   /api/v1/students                           → nurse, pharmacist, superadmin
@@ -12,7 +9,6 @@
 //   PUT    /api/v1/students/:id                       → nurse, pharmacist, superadmin
 //   GET    /api/v1/students/:id/health                → nurse, pharmacist, superadmin
 //   PUT    /api/v1/students/:id/health                → nurse, pharmacist, superadmin
-//   GET    /api/v1/students/:id/allergies             → nurse, pharmacist, superadmin
 //   POST   /api/v1/students/:id/allergies             → nurse, pharmacist, superadmin
 //   DELETE /api/v1/students/:id/allergies/:algId      → nurse, pharmacist, superadmin
 // ============================================================
@@ -26,12 +22,13 @@ import { auditAccess } from '../middlewares/auditLogger.middleware';
 const router = Router();
 const controller = new StudentController();
 
-// Todas as rotas exigem autenticação
 router.use(requireAuth);
 
-// ── Listagem e busca ─────────────────────────────────────────
-router.get('/', (req, res) => controller.list(req, res));
+// ── IMPORTANTE: rotas estáticas antes de /:id ────────────────
 router.get('/search', (req, res) => controller.search(req, res));
+
+// ── Listagem ─────────────────────────────────────────────────
+router.get('/', (req, res) => controller.list(req, res));
 
 // ── CRUD de dados demográficos ───────────────────────────────
 router.post(
@@ -48,7 +45,7 @@ router.put(
   (req, res) => controller.update(req, res)
 );
 
-// ── Prontuário eletrônico — acesso restrito ──────────────────
+// ── Prontuário eletrônico ────────────────────────────────────
 router.get(
   '/:id/health',
   requireRole('nurse', 'pharmacist', 'superadmin'),
@@ -59,13 +56,15 @@ router.get(
 router.put(
   '/:id/health',
   requireRole('nurse', 'pharmacist', 'superadmin'),
-  (req, res) => controller.updateHealthRecord(req, res)
+  (req, res) => controller.updateChronicConditions(req, res)
 );
 
 // ── Alergias ─────────────────────────────────────────────────
+// GET de alergias redireciona para getHealthProfile (retorna allergies junto)
 router.get(
   '/:id/allergies',
   requireRole('nurse', 'pharmacist', 'superadmin'),
+  auditAccess,
   (req, res) => controller.getHealthProfile(req, res)
 );
 

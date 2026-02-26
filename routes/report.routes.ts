@@ -2,10 +2,6 @@
 // ============================================================
 // Rotas de Business Intelligence e relatórios.
 //
-// Todos os endpoints retornam dados anonimizados.
-// Acessíveis por qualquer role autenticado, exceto /audit
-// que é restrito a superadmin.
-//
 //   GET /api/v1/reports/dashboard              → todos os roles
 //   GET /api/v1/reports/heatmap                → todos os roles
 //   GET /api/v1/reports/medications/abc        → todos os roles
@@ -26,18 +22,18 @@ const controller = new ReportController();
 router.use(requireAuth);
 
 // ── Relatórios anonimizados — todos os roles ─────────────────
-router.get('/dashboard', (req, res) => controller.dashboard(req, res));
-router.get('/heatmap', (req, res) => controller.heatmap(req, res));
-router.get('/medications/abc', (req, res) => controller.medicationAbcCurve(req, res));
-router.get('/allergies/coverage', (req, res) => controller.allergyCoverage(req, res));
-router.get('/attendances/by-day', (req, res) => controller.attendancesByDay(req, res));
-router.get('/attendances/by-status', (req, res) => controller.attendancesByStatus(req, res));
+router.get('/dashboard',             (req, res) => controller.getDashboard(req, res));
+router.get('/heatmap',               (req, res) => controller.getHeatmap(req, res));
+router.get('/medications/abc',       (req, res) => controller.getMedicationAbc(req, res));
+router.get('/allergies/coverage',    (req, res) => controller.getAllergyCoverage(req, res));
+router.get('/attendances/by-day',    (req, res) => controller.getAttendancesByDay(req, res));
+router.get('/attendances/by-status', (req, res) => controller.getAttendancesByStatus(req, res));
 
 // ── Auditoria — apenas superadmin ────────────────────────────
 router.get(
   '/audit',
   requireRole('superadmin'),
-  (req, res) => controller.auditLog(req, res)
+  (req, res) => controller.getAuditLog(req, res)
 );
 
 export default router;
