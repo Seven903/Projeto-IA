@@ -1,226 +1,258 @@
+// src/pages/Dashboard.tsx
+// Rota /dashboard — protegida, acessível para todos os roles
+// Consome:
+//   GET /api/v1/reports/dashboard       → DashboardSummary
+//   GET /api/v1/attendances/open        → Attendance[] (atendimentos em aberto)
+
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
-} from 'recharts';
-import {
-  Activity, Users, AlertTriangle, CheckCircle,
-  TrendingUp, Clock,
+  Stethoscope,
+  Pill,
+  AlertTriangle,
+  Users,
+  TrendingUp,
+  Clock,
 } from 'lucide-react';
-import { reportsApi } from '../api/reports';
-import { useApi } from '../hooks/useApi';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
-import { formatDate } from '../utils/format';
-import type { AttendanceStatus } from '../types';
+import { useFetch } from '../hooks/useFetch';
+import { reportsApi } from '../api/reports';
+import { attendancesApi } from '../api/attendances';
+import { Card } from '../components/ui/Card';
+import { Spinner } from '../components/ui/Spinner';
+import { AttendanceBadge } from '../components/ui/Badge';
+import type { DashboardSummary, Attendance } from '../types';
 
-const STATUS_COLORS: Record<AttendanceStatus, string> = {
-  open:            '#3b82f6',
-  dispensed:       '#10b981',
-  referred:        '#f59e0b',
-  closed:          '#6b7280',
-  blocked_allergy: '#ef4444',
-};
-
-const STATUS_LABELS: Record<AttendanceStatus, string> = {
-  open:            'Em Atendimento',
-  dispensed:       'Medicado',
-  referred:        'Encaminhado',
-  closed:          'Encerrado',
-  blocked_allergy: 'Bloqueado',
-};
+// ── Card de métrica ───────────────────────────────────────────
+function MetricCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  sub,
+}: {
+  label: string;
+  value: number | string;
+  icon: React.ElementType;
+  color: string;
+  sub?: string;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+      <div className={`w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-sm text-gray-500">{label}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  );
+}
 
 export function Dashboard() {
   const { user } = useAuth();
-  const { data: summary, isLoading: loadingSummary, execute: fetchSummary } =
-    useApi(reportsApi.dashboard);
-  const { data: byDay, execute: fetchByDay } =
-    useApi(reportsApi.attendancesByDay);
-  const { data: byStatus, execute: fetchByStatus } =
-    useApi(reportsApi.attendancesByStatus);
+  const navigate = useNavigate();
+
+  const {
+    data: summary,
+    isLoading: loadingSummary,
+    execute: fetchSummary,
+  } = useFetch<[], DashboardSummary>(reportsApi.dashboard);
+
+  const {
+    data: openAttendances,
+    isLoading: loadingOpen,
+    execute: fetchOpen,
+  } = useFetch<[], Attendance[]>(attendancesApi.listOpen);
 
   useEffect(() => {
     fetchSummary();
-    fetchByDay();
-    fetchByStatus();
+    fetchOpen();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const alertTotal = summary
-    ? summary.stockAlerts.critical + summary.stockAlerts.warning
-    : 0;
+  const isLoading = loadingSummary || loadingOpen;
 
-  const metricCards = summary
-    ? [
-        {
-          label: 'Atendimentos Hoje',
-          value: summary.attendancesToday,
-          icon: Activity,
-          color: 'text-brand-600',
-          bg: 'bg-brand-50',
-        },
-        {
-          label: 'Este Mês',
-          value: summary.attendancesThisMonth,
-          icon: TrendingUp,
-          color: 'text-green-600',
-          bg: 'bg-green-50',
-        },
-        {
-          label: 'Em Aberto',
-          value: summary.openAttendances,
-          icon: Clock,
-          color: 'text-orange-500',
-          bg: 'bg-orange-50',
-        },
-        {
-          label: 'Alertas de Estoque',
-          value: alertTotal,
-          icon: alertTotal > 0 ? AlertTriangle : CheckCircle,
-          color: alertTotal > 0 ? 'text-red-500' : 'text-green-600',
-          bg: alertTotal > 0 ? 'bg-red-50' : 'bg-green-50',
-        },
-      ]
-    : [];
+  // Conta alertas críticos de estoque
+  const criticalAlerts = summary?.stockAlerts.filter(
+    (a) => a.alertLevel === 'critical'
+  ).length ?? 0;
 
-  const pieData = (byStatus ?? []).map((s) => ({
-    name: STATUS_LABELS[s.status] ?? s.status,
-    value: s.count,
-    fill: STATUS_COLORS[s.status] ?? '#94a3b8',
-  }));
+  const warningAlerts = summary?.stockAlerts.filter(
+    (a) => a.alertLevel === 'warning'
+  ).length ?? 0;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Olá, {user?.fullName?.split(' ')[0]} 👋
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Aqui está o resumo de hoje — {formatDate(new Date().toISOString())}
+    <div className="flex flex-col gap-6">
+
+      {/* Cabeçalho */}
+      <div>
+        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-0.5">
+          Olá, {user?.fullName?.split(' ')[0]}. Aqui está o resumo de hoje.
         </p>
       </div>
 
-      {/* Métricas */}
-      {loadingSummary ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 animate-pulse h-28" />
-          ))}
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <Spinner size="lg" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {metricCards.map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="bg-white rounded-xl border border-gray-100 shadow-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-                <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}>
-                  <Icon className={`w-4 h-4 ${color}`} />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Alertas de estoque */}
-      {summary && summary.stockAlerts.critical > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-red-700">
-              {summary.stockAlerts.critical} medicamento(s) com estoque crítico
-            </p>
-            <p className="text-xs text-red-500 mt-0.5">
-              Verifique a tela de Estoque para mais detalhes.
-            </p>
+        <>
+          {/* Métricas principais */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              label="Atendimentos hoje"
+              value={summary?.attendancesToday ?? 0}
+              icon={Stethoscope}
+              color="bg-brand-600"
+            />
+            <MetricCard
+              label="Este mês"
+              value={summary?.attendancesThisMonth ?? 0}
+              icon={TrendingUp}
+              color="bg-purple-500"
+            />
+            <MetricCard
+              label="Em aberto agora"
+              value={summary?.openAttendances ?? 0}
+              icon={Clock}
+              color="bg-yellow-500"
+            />
+            <MetricCard
+              label="Alertas de estoque"
+              value={summary?.totalStockAlerts ?? 0}
+              icon={AlertTriangle}
+              color={criticalAlerts > 0 ? 'bg-red-500' : 'bg-orange-400'}
+              sub={
+                criticalAlerts > 0
+                  ? `${criticalAlerts} crítico${criticalAlerts > 1 ? 's' : ''}`
+                  : warningAlerts > 0
+                    ? `${warningAlerts} atenção`
+                    : undefined
+              }
+            />
           </div>
-          <Badge variant="danger" className="ml-auto">
-            {summary.stockAlerts.critical} crítico(s)
-          </Badge>
-        </div>
-      )}
 
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Linha — atendimentos por dia */}
-        <Card title="Atendimentos por dia" className="lg:col-span-2">
-          {byDay && byDay.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={byDay} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(v) => formatDate(v)}
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip
-                  formatter={(v) => [v, 'Atendimentos']}
-                  labelFormatter={(l) => formatDate(l)}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#0284c7"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: '#0284c7' }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">
-              Sem dados no período
-            </div>
-          )}
-        </Card>
-
-        {/* Pizza — por status */}
-        <Card title="Status dos atendimentos">
-          {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={55}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
+          {/* Alertas críticos de estoque */}
+          {criticalAlerts > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <p className="text-sm font-semibold text-red-700">
+                  {criticalAlerts} medicamento{criticalAlerts > 1 ? 's' : ''} com alerta crítico
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {summary?.stockAlerts
+                  .filter((a) => a.alertLevel === 'critical')
+                  .slice(0, 4)
+                  .map((a) => (
+                    <div key={a.medicationId} className="flex items-center justify-between text-sm">
+                      <span className="text-red-700 font-medium">{a.commercialName}</span>
+                      <span className="text-red-500 text-xs">{a.expiryStatusLabel}</span>
+                    </div>
                   ))}
-                </Pie>
-                <Legend
-                  iconSize={8}
-                  formatter={(v) => <span style={{ fontSize: 11 }}>{v}</span>}
-                />
-                <Tooltip
-                  formatter={(v, n) => [v, n]}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">
-              Sem dados
+              </div>
+              <button
+                onClick={() => navigate('/estoque')}
+                className="mt-3 text-xs text-red-600 font-medium hover:underline"
+              >
+                Ver todos os alertas →
+              </button>
             </div>
           )}
-        </Card>
-      </div>
 
-      {/* Usuários sem permissão a dados de saúde */}
-      {user?.role === 'admin' && (
-        <p className="text-xs text-gray-400 mt-6 text-center">
-          Você tem acesso apenas a relatórios anonimizados. Dados de saúde individuais são restritos.
-        </p>
+          {/* Atendimentos em aberto */}
+          <Card
+            title="Atendimentos em aberto"
+            action={
+              <button
+                onClick={() => navigate('/atendimentos')}
+                className="text-xs text-brand-600 font-medium hover:underline"
+              >
+                Ver todos
+              </button>
+            }
+          >
+            {!openAttendances || openAttendances.length === 0 ? (
+              <div className="flex items-center justify-center py-10 text-sm text-gray-400">
+                <Users className="w-5 h-5 mr-2" />
+                Nenhum atendimento em aberto
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {openAttendances.slice(0, 5).map((att) => (
+                  <button
+                    key={att.id}
+                    onClick={() => navigate(`/atendimentos`)}
+                    className="flex items-center justify-between py-2.5 px-3 rounded-lg
+                      hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {att.student?.fullName ?? '—'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {att.student?.enrollmentCode} · {att.student?.gradeClass ?? 'Sem turma'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-400">
+                        {new Date(att.attendedAt).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      <AttendanceBadge status={att.status} />
+                    </div>
+                  </button>
+                ))}
+                {openAttendances.length > 5 && (
+                  <p className="text-xs text-center text-gray-400 pt-1">
+                    +{openAttendances.length - 5} atendimento{openAttendances.length - 5 > 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* Estoque — resumo rápido */}
+          {(summary?.stockAlerts.length ?? 0) > 0 && (
+            <Card
+              title={`Estoque em alerta (${summary?.totalStockAlerts ?? 0})`}
+              action={
+                <button
+                  onClick={() => navigate('/estoque')}
+                  className="text-xs text-brand-600 font-medium hover:underline"
+                >
+                  Gerenciar
+                </button>
+              }
+            >
+              <div className="flex flex-col gap-2">
+                {summary?.stockAlerts.slice(0, 5).map((a) => (
+                  <div key={a.medicationId} className="flex items-center justify-between py-1">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{a.commercialName}</p>
+                      <p className="text-xs text-gray-400">{a.activeIngredient}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">{a.expiryStatusLabel}</p>
+                      <p className="text-xs font-medium text-gray-700">
+                        {a.totalStock} unidades
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
 }
+

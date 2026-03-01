@@ -149,7 +149,7 @@ AuditLog.init(
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
-    createdAt: { type: DataTypes.DATE, allowNull: false },
+    createdAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   },
   {
     sequelize,

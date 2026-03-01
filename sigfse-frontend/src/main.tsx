@@ -1,3 +1,8 @@
+// src/main.tsx
+// Entrypoint da aplicação SIGFSE.
+// Monta o React na div#root do index.html.
+// AuthProvider envolve AppRouter para que useAuth() funcione em todas as rotas.
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AuthProvider } from './context/AuthContext';
@@ -11,3 +16,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </AuthProvider>
   </React.StrictMode>
 );
+
